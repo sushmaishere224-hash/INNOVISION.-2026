@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111a17">
+    <meta name="description" content="A prototype landslide risk monitor for locations in Uttarakhand.">
+    <title>Risk Monitor | Uttarakhand</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+</head>
+
+<body class="dashboard-page">
+    <header class="dashboard-header">
+        <a class="brand" href="/" aria-label="Back to landslide prediction home"><span class="brand-mark"
+                aria-hidden="true"><span></span></span><span>FIELD / 07</span></a>
+        <div class="dashboard-breadcrumb"><a href="/">REGION</a><span>/</span><strong
+                id="selected-place-nav">UTTARAKHAND</strong></div>
+        <span class="demo-status"><span></span> LIVE TELEMETRY · UTTARAKHAND LEWS</span>
+    </header>
+    <main class="dashboard-shell">
+        <div class="dashboard-titlebar">
+            <div>
+                <p class="eyebrow">LANDSLIDE RISK MONITOR <span>UTTARAKHAND, INDIA</span></p>
+                <h1 id="dashboard-title">Regional overview</h1>
+            </div>
+            <div class="updated-label"><span class="updated-dot"></span> MODEL READY <span
+                    class="updated-divider">/</span> <span id="updated-time">DEMO RUN</span></div>
+        </div>
+        <section id="alert-banner" class="alert-banner" aria-live="assertive" hidden>
+            <span class="alert-symbol" aria-hidden="true">!</span>
+            <div><strong id="alert-title">Threshold exceeded</strong><span id="alert-copy">Simulated risk has crossed
+                    the alert threshold.</span></div>
+            <span class="alert-code">AUTOMATED ALERT</span>
+        </section>
+        <div class="dashboard-grid">
+            <aside class="analysis-panel" aria-label="Risk assessment controls">
+                <section class="risk-summary" aria-live="polite">
+                    <div class="panel-kicker"><span>LOCATION RISK</span><span class="risk-live">SIM</span></div>
+                    <div class="risk-reading"><strong id="risk-score">61</strong><span>/ 100</span></div>
+                    <div class="risk-status"><span id="risk-dot"></span><strong id="risk-level">MODERATE</strong><span
+                            id="risk-location-short">JOSHIMATH</span></div>
+                    <div class="risk-track"><span id="risk-track-fill"></span></div>
+                </section>
+                <section class="rainfall-control">
+                    <div class="section-heading"><label for="rainfall-input">Rainfall intensity</label><span>MM /
+                            HOUR</span></div>
+                    <div class="rainfall-reading"><output id="rainfall-value"
+                            for="rainfall-input">32</output><span>mm/h</span><span id="rainfall-signal"
+                            class="rainfall-signal">STEADY</span></div>
+                    <input id="rainfall-input" type="range" min="0" max="100" step="1" value="32"
+                        aria-label="Simulated rainfall intensity in millimeters per hour">
+                    <div class="range-labels"><span>0 mm/h</span><span>100 mm/h</span></div>
+                </section>
+                <section class="threshold-control">
+                    <div class="section-heading"><label for="threshold-input">Alert threshold</label><span
+                            id="threshold-value">70 / 100</span></div>
+                    <input id="threshold-input" type="range" min="40" max="90" step="1" value="70"
+                        aria-label="Risk score alert threshold">
+                    <p>Alert when the risk score meets or exceeds this level.</p>
+                </section>
+                <section class="data-note"><span class="data-note-mark" aria-hidden="true">i</span>
+                    <p><strong>Prototype data</strong>Risk inputs and hazard zones are illustrative, not a live
+                        forecast. Connect verified rainfall, terrain, soil, and landslide records before operational
+                        use.</p>
+                </section>
+            </aside>
+            <section class="map-section" aria-labelledby="map-heading">
+                <div class="map-toolbar">
+                    <div>
+                        <p class="eyebrow">EXPOSURE MAP</p>
+                        <h2 id="map-heading">Uttarakhand <span>·</span> India</h2>
+                    </div>
+                    <label class="map-search"><span class="sr-only">Find a location</span><input id="map-search-input"
+                            list="map-places" placeholder="Find a place" autocomplete="off"><datalist
+                            id="map-places"></datalist><button id="map-search-button" type="button"
+                            aria-label="Find location">↗</button></label>
+                </div>
+                <div class="map-wrap">
+                    <div id="risk-map" role="application"
+                        aria-label="Interactive map showing illustrative landslide risk areas in Uttarakhand"></div>
+                    <div class="map-layer-control" aria-label="Map layers">
+                        <label><input type="checkbox" id="risk-layer-toggle" checked><span
+                                class="layer-swatch risk-swatch"></span> Modeled risk</label>
+                        <label><input type="checkbox" id="history-layer-toggle" checked><span
+                                class="layer-swatch history-swatch"></span> Historical sites</label>
+                    </div>
+                    <div class="map-legend"><span>RISK LEVEL</span><span><i class="legend-low"></i>LOW</span><span><i
+                                class="legend-moderate"></i>MODERATE</span><span><i class="legend-high"></i>HIGH</span>
+                    </div>
+                    <div class="map-scale-label">ILLUSTRATIVE ZONES · TERRAIN BASEMAP</div>
+                </div>
+                <div class="map-footer"><span><span class="map-footer-dot"></span> FOCUSED LOCATION <strong
+                            id="map-focus-label">Joshimath</strong></span><span>© OpenStreetMap contributors</span>
+                </div>
+            </section>
+        </div>
+        <div class="risk-detail-sections">
+            <section class="risk-detail-section weather-section" id="weatherSection" aria-labelledby="weather-heading">
+                <canvas id="weatherAnimCanvas" aria-hidden="true"></canvas>
+                <div class="section-glass-container">
+                    <div class="section-header">
+                        <h2 id="weather-heading"><i class="fa-solid fa-cloud-sun-rain"></i> Regional Weather: <span
+                                id="weatherLocationName">Dehradun</span></h2>
+                    </div>
+                    <div class="section-body">
+                        <p id="weatherDescription">Live meteorological data tracking rainfall intensity, humidity, and
+                            wind speeds across vulnerable elevation zones.</p>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <h3>Temperature</h3>
+                                <p id="weatherTempVal">24°C</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Humidity</h3>
+                                <p id="weatherHumidityVal">82%</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Condition</h3>
+                                <p id="weatherConditionVal">Moderate Rain</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="risk-detail-section landscape-section" id="landscapeSection"
+                aria-labelledby="factors-heading">
+                <div class="section-glass-container">
+                    <div class="section-header">
+                        <h2 id="factors-heading"><i class="fa-solid fa-chart-pie"></i> Landslide Risk Factors</h2>
+                    </div>
+                    <div class="section-body">
+                        <p>Breakdown of terrain vulnerability metrics driven by slope steepness, soil composition, and
+                            seismic fault lines.</p>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <h3>Slope Angle</h3>
+                                <p id="factorSlopeVal">38.5° Critical Shear Zone</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Elevation</h3>
+                                <p id="factorElevVal">1,890 m ASL</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Soil Characteristics</h3>
+                                <p id="riskSoilVal">74% Critical Saturation</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Historical Landslides</h3>
+                                <p id="factorHistVal">Joshimath Subsidence (2023)</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Rainfall Intensity</h3>
+                                <p id="factorRainVal">32 mm/h (35% Weight)</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>GSI Susceptibility</h3>
+                                <p id="factorGsiVal">Class 5 (MCT Zone)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <footer class="dashboard-footer"><span>FIELD / 07</span><span>DECISION SUPPORT PROTOTYPE <i></i> NOT FOR
+                EMERGENCY RESPONSE</span><a href="/">CHANGE LOCATION ↗</a></footer>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script type="module" src="risk.js"></script>
+    <script src="risk-effects.js"></script>
+</body>
+
+</html>

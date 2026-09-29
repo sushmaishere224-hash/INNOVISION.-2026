@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+h3
+httpx
+numpy
+sqlalchemy
+passlib
+bcrypt==4.0.1
+python-multipart
+email-validator
+python-dotenv
+twilio
+shapely
+rasterio
+python-jose[cryptography]

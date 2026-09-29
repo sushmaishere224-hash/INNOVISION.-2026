@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@turf/mask": "^7.4.0"
+  }
+}

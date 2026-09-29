@@ -1,0 +1,36 @@
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+.venv/
+ENV/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs and temporary files
+*.log
+n.log
+*.tmp
+
+# Operating system files
+.DS_Store
+Thumbs.db

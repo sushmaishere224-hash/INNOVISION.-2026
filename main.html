@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landslide Predictor | Uttarakhand</title>
+    <!-- Link to External CSS -->
+    <link rel="stylesheet" href="csse.css">
+    <link rel="stylesheet" href="intro.css">
+    <!-- FontAwesome for Social & Navigation Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- SAND GRAIN CURSOR CANVAS -->
+    <canvas id="sandCursorCanvas"></canvas>
+
+    <div class="site-container">
+
+        <!-- SECTION 1: HERO & LANDING -->
+        <section class="hero-container section-fade" id="heroSection">
+            <!-- Split Typography Hero Title -->
+            <div class="hero-title-bg">
+                <span class="text-land"> LANDSLIDE</span>
+                <span class="text-slide">PREDICTOR</span>
+            </div>
+
+            <!-- Frosted Glass Interactive Panel -->
+            <div class="glass-panel">
+                <div class="follow-section">
+                    <div>UTTARAKHAND HAZARD MAPPING</div>
+                </div>
+
+                <div class="panel-content">
+                    <h1>REAL-TIME RISK PREDICTOR</h1>
+                    <p>
+                        Uttarakhand's fragile Himalayan ecosystem is vulnerable to heavy monsoons and seismic activity.
+                        Our AI-driven prediction model analyzes rainfall thresholds, soil saturation, and slope
+                        displacement to forecast hazards early.
+                    </p>
+
+                    <a href="#globeSection" class="cta-btn">
+                        CHECK ZONE STATUS <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="globe-interlude section-fade" id="globeSection" aria-labelledby="globeHeading">
+            <div class="globe-copy">
+                <span class="globe-kicker">UTTARAKHAND / TERRAIN MONITOR</span>
+                <h2 id="globeHeading">Choose a location</h2>
+                <p>Move from the Himalayan overview to a local risk map.</p>
+            </div>
+            <div class="globe-stage" id="globeStage" aria-label="Rotating Earth. Drag to rotate.">
+                <canvas id="globeCanvas" aria-label="Three-dimensional Earth globe"></canvas>
+                <span class="globe-location-pin" id="globePin" aria-hidden="true"></span>
+                <span class="globe-load-label" id="globeLoadLabel" role="status">LOADING EARTH IMAGERY</span>
+            </div>
+            <div class="globe-cta-wrap">
+                <button class="globe-enter-button" id="globeEnterButton" type="button">ENTER YOUR LOCATION <span
+                        aria-hidden="true">↗</span></button>
+                <form class="globe-location-form" id="globeLocationForm" hidden>
+                    <label class="sr-only" for="globeLocationInput">Choose a location in Uttarakhand</label>
+                    <input id="globeLocationInput" list="uttarakhandLocations" placeholder="Choose a town or district"
+                        autocomplete="off" required>
+                    <datalist id="uttarakhandLocations">
+                        <option value="Joshimath"></option>
+                        <option value="Kedarnath"></option>
+                        <option value="Chamoli"></option>
+                        <option value="Uttarkashi"></option>
+                        <option value="Rudraprayag"></option>
+                        <option value="Pithoragarh"></option>
+                        <option value="Tehri Garhwal"></option>
+                        <option value="Nainital"></option>
+                        <option value="Bageshwar"></option>
+                        <option value="Dehradun"></option>
+                        <option value="Rishikesh"></option>
+                        <option value="Haldwani"></option>
+                        <option value="Haridwar"></option>
+                    </datalist>
+                    <button type="submit" aria-label="Open selected location risk map">OPEN MAP <span
+                            aria-hidden="true">→</span></button>
+                    <span class="globe-location-error" id="globeLocationError" aria-live="polite"></span>
+                </form>
+                <span class="globe-hint" id="globeHint">The globe will zoom to Uttarakhand</span>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Original dashboard script retained as reference; results now live on risk.html. -->
+    <script type="text/plain">
+        document.body.classList.add('site-loaded');
+
+        const heroSection = document.getElementById('heroSection');
+        const mapSection = document.getElementById('mapSection');
+        const weatherSection = document.getElementById('weatherSection');
+        const landscapeSection = document.getElementById('landscapeSection');
+        const navButtons = document.querySelectorAll('.glow-btn');
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const newBgImage = button.getAttribute('data-bg');
+                if (newBgImage) {
+                    const bgOverlay = `linear-gradient(rgba(11, 15, 18, 0.5), rgba(11, 15, 18, 0.5)), url('${newBgImage}')`;
+                    heroSection.style.backgroundImage = bgOverlay;
+                    mapSection.style.backgroundImage = bgOverlay;
+                    weatherSection.style.backgroundImage = bgOverlay;
+                    landscapeSection.style.backgroundImage = bgOverlay;
+                }
+                
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+        });
+
+        // Intersection Observer for silky smooth fade-in as sections scroll into view
+        const sections = document.querySelectorAll('.section-fade');
+        const observerOptions = { root: null, threshold: 0.15 };
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('in-view');
+            });
+        }, observerOptions);
+        sections.forEach(sec => sectionObserver.observe(sec));
+
+        // --- Sand Grain Cursor Particle Effect ---
+        const canvas = document.getElementById('sandCursorCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            wAnimCanvas.width = weatherSection.offsetWidth;
+            wAnimCanvas.height = weatherSection.offsetHeight;
+        });
+
+        const grains = [];
+        let mouseX = width / 2, mouseY = height / 2;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            for (let i = 0; i < 3; i++) {
+                grains.push({
+                    x: mouseX + (Math.random() * 10 - 5),
+                    y: mouseY + (Math.random() * 10 - 5),
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: Math.random() * 1.5 + 0.5,
+                    size: Math.random() * 2 + 1,
+                    alpha: 1
+                });
+            }
+        });
+
+        function animateSand() {
+            ctx.clearRect(0, 0, width, height);
+            for (let i = grains.length - 1; i >= 0; i--) {
+                let g = grains[i];
+                g.x += g.vx; g.y += g.vy; g.alpha -= 0.02;
+                if (g.alpha <= 0) { grains.splice(i, 1); continue; }
+                ctx.fillStyle = `rgba(210, 180, 140, ${g.alpha})`;
+                ctx.fillRect(g.x, g.y, g.size, g.size);
+            }
+            requestAnimationFrame(animateSand);
+        }
+        animateSand();
+
+        // --- Real-time Weather & Dynamic Weather Background Animation ---
+        const wAnimCanvas = document.getElementById('weatherAnimCanvas');
+        const wCtx = wAnimCanvas.getContext('2d');
+        wAnimCanvas.width = weatherSection.offsetWidth;
+        wAnimCanvas.height = weatherSection.offsetHeight;
+
+        let currentWeatherType = 'rain'; // Options: 'rain', 'snow', 'clear'
+        let weatherParticles = [];
+
+        function initWeatherParticles() {
+            weatherParticles = [];
+            let count = currentWeatherType === 'rain' ? 100 : (currentWeatherType === 'snow' ? 50 : 20);
+            for (let i = 0; i < count; i++) {
+                weatherParticles.push({
+                    x: Math.random() * wAnimCanvas.width,
+                    y: Math.random() * wAnimCanvas.height,
+                    length: currentWeatherType === 'rain' ? Math.random() * 20 + 10 : Math.random() * 4 + 2,
+                    speed: currentWeatherType === 'rain' ? Math.random() * 8 + 6 : Math.random() * 1.5 + 0.5,
+                    radius: currentWeatherType === 'snow' ? Math.random() * 3 + 1 : 1.5,
+                    opacity: Math.random() * 0.6 + 0.2
+                });
+            }
+        }
+        initWeatherParticles();
+
+        function animateWeatherBackground() {
+            wCtx.clearRect(0, 0, wAnimCanvas.width, wAnimCanvas.height);
+
+            if (currentWeatherType === 'clear') {
+                // Draw a pulsing glowing sun/clear aura in top right
+                wCtx.fillStyle = 'rgba(255, 204, 0, 0.15)';
+                wCtx.beginPath();
+                wCtx.arc(wAnimCanvas.width - 120, 100, 70, 0, Math.PI * 2);
+                wCtx.fill();
+            }
+
+            weatherParticles.forEach(p => {
+                wCtx.beginPath();
+                if (currentWeatherType === 'rain') {
+                    wCtx.strokeStyle = `rgba(135, 206, 250, ${p.opacity})`;
+                    wCtx.lineWidth = 1.5;
+                    wCtx.moveTo(p.x, p.y);
+                    wCtx.lineTo(p.x - 1, p.y + p.length);
+                    wCtx.stroke();
+                    p.y += p.speed;
+                    p.x -= 0.5;
+                } else if (currentWeatherType === 'snow') {
+                    wCtx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                    wCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    wCtx.fill();
+                    p.y += p.speed;
+                    p.x += Math.sin(p.y * 0.02) * 0.5;
+                } else {
+                    // Overcast / Gentle mist particles
+                    wCtx.fillStyle = `rgba(200, 200, 200, ${p.opacity * 0.3})`;
+                    wCtx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
+                    wCtx.fill();
+                    p.x += 0.2;
+                }
+
+                // Reset loop bounds
+                if (p.y > wAnimCanvas.height) { p.y = 0; p.x = Math.random() * wAnimCanvas.width; }
+                if (p.x < 0) p.x = wAnimCanvas.width;
+            });
+
+            requestAnimationFrame(animateWeatherBackground);
+        }
+        animateWeatherBackground();
+
+        // Search Region Weather & Map Live Update Trigger
+        const searchInput = document.getElementById('sidebarSearchInput');
+        searchInput.addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                const queryCity = searchInput.value.trim();
+                if (!queryCity) return;
+
+                document.getElementById('weatherLocationName').innerText = queryCity;
+                document.getElementById('weatherDescription').innerText = `Fetching live meteorological data for ${queryCity}...`;
+
+                // Update Map Frame
+                document.getElementById('mapIframe').src = `https://www.openstreetmap.org/export/embed.html?q=${encodeURIComponent(queryCity)}&layer=mapnik`;
+
+                // Fetch real weather using OpenWeather API free endpoint or simulated fallback
+                try {
+                    const apiKey = 'YOUR_OPENWEATHER_API_KEY'; // Replace with a valid key or let it fallback gracefully
+                    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(queryCity)}&units=metric&appid=${apiKey}`);
+                    if (!response.ok) throw new Error('Network response failed');
+                    const data = await response.json();
+
+                    const temp = Math.round(data.main.temp);
+                    const humidity = data.main.humidity;
+                    const condition = data.weather[0].main;
+
+                    document.getElementById('weatherTempVal').innerText = `${temp}°C`;
+                    document.getElementById('weatherHumidityVal').innerText = `${humidity}%`;
+                    document.getElementById('weatherConditionVal').innerText = condition;
+                    document.getElementById('riskSoilVal').innerText = `${Math.min(95, humidity + 15)}% Critical Threshold`;
+
+                    if (condition.toLowerCase().includes('rain') || condition.toLowerCase().includes('storm')) {
+                        currentWeatherType = 'rain';
+                    } else if (condition.toLowerCase().includes('snow')) {
+                        currentWeatherType = 'snow';
+                    } else {
+                        currentWeatherType = 'clear';
+                    }
+                    initWeatherParticles();
+                    document.getElementById('weatherDescription').innerText = `Live meteorological tracking for ${queryCity}: Skies are currently reported as ${condition.toLowerCase()}.`;
+                } catch (err) {
+                    // Fallback simulation for demonstration if API key is blank/restricted
+                    const randomTemp = Math.floor(Math.random() * 20) + 10;
+                    const randomHumidity = Math.floor(Math.random() * 40) + 50;
+                    const conditionsList = ['Moderate Rain', 'Clear Skies', 'Heavy Showers', 'Snow Flurries', 'Overcast'];
+                    const chosenCondition = conditionsList[Math.floor(Math.random() * conditionsList.length)];
+
+                    document.getElementById('weatherTempVal').innerText = `${randomTemp}°C`;
+                    document.getElementById('weatherHumidityVal').innerText = `${randomHumidity}%`;
+                    document.getElementById('weatherConditionVal').innerText = chosenCondition;
+                    document.getElementById('riskSoilVal').innerText = `${randomHumidity + 10}% Critical Threshold`;
+
+                    if (chosenCondition.includes('Rain') || chosenCondition.includes('Showers')) {
+                        currentWeatherType = 'rain';
+                    } else if (chosenCondition.includes('Snow')) {
+                        currentWeatherType = 'snow';
+                    } else {
+                        currentWeatherType = 'clear';
+                    }
+                    initWeatherParticles();
+                    document.getElementById('weatherDescription').innerText = `Simulated live telemetry for ${queryCity}: Monitored elevation zone reports ${chosenCondition.toLowerCase()}.`;
+                }
+            }
+        });
+    </script>
+    <script type="module" src="home.js"></script>
+    <script type="module" src="globe.js"></script>
+    <script src="intro.js"></script>
+    <script src="features.js"></script>
+</body>
+
+</html>
